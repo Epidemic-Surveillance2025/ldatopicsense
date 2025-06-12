@@ -159,6 +159,7 @@ def init_azure_openai_client(api_key=None, api_endpoint=None):
     return None
     
 # Text preprocessing function
+@st.cache_data
 def preprocess_text(text):
     if isinstance(text, str):
         # Convert to lowercase
@@ -173,6 +174,7 @@ def preprocess_text(text):
     return ""
 
 # Function to compute coherence scores for different numbers of topics
+@st.cache_data
 def compute_coherence_values(dictionary, corpus, texts, start=2, limit=15, step=1):
     coherence_values = []
     model_list = []
@@ -260,6 +262,7 @@ def find_optimal_topics(coherence_values, topic_range):
     return topic_range[max_index]
 
 # Function to perform sentiment analysis
+@st.cache_data
 def analyze_topic_sentiment(lda_model, corpus, texts):
     """
     Analyse sentiment for each topic in the LDA model.
@@ -302,6 +305,7 @@ def analyze_topic_sentiment(lda_model, corpus, texts):
     return df_topics
 
 # Function to visualise sentiment by topic
+@st.cache_data
 def visualize_topic_sentiment(sentiment_df, lda_model):
     """
     Create visualisations for sentiment analysis by topic.
