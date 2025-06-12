@@ -597,39 +597,6 @@ def explain_topic(model, topic_id, corpus, dictionary, top_n=10):
     - Look for **semantic connections** between the top terms
     """)
 
-def explain_topic_with_sentiment(model, topic_id, corpus, dictionary, sentiment_data, top_n=10):
-    """Explain topic with sentiment information"""
-    
-    # Call the regular explain_topic function first
-    explain_topic(model, topic_id, corpus, dictionary, top_n)
-    
-    # Add sentiment analysis for this topic
-    st.write("##### Sentiment Analysis for this Topic")
-    
-    # Filter sentiment data for documents where this topic is prominent
-    topic_sentiments = []
-    doc_topic_probs = [doc for doc in model[corpus]]
-    
-    for doc_id, doc in enumerate(doc_topic_probs):
-        for topic, prob in doc:
-            if topic == topic_id and prob > 0.3:
-                if doc_id < len(sentiment_data):
-                    # Use 'polarity' column for sentiment score
-                    topic_sentiments.append(sentiment_data.iloc[doc_id]['polarity'])
-    
-    if topic_sentiments:
-        avg_sentiment = sum(topic_sentiments) / len(topic_sentiments)
-        st.metric("Average Sentiment", f"{avg_sentiment:.3f}")
-        
-        # Create sentiment distribution
-        import plotly.express as px
-        fig = px.histogram(
-            x=topic_sentiments,
-            title=f"Sentiment Distribution for Topic {topic_id}",
-            labels={'x': 'Sentiment Score', 'y': 'Count'}
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
 # Define own sentiment analysis documentation content
 sentiment_docs = """
 # Understanding Sentiment Analysis
@@ -805,12 +772,11 @@ if uploaded_file is not None:
 
             if st.button("Analyse Selected Topic"):
                 # Enhance topic interpretation further by including extracted sentiments
-                explain_topic_with_sentiment(
+                explain_topic(
                     model=st.session_state.results['lda_model'], 
                     topic_id=selected_topic, 
                     corpus=st.session_state.results['corpus'], 
-                    dictionary=st.session_state.results['dictionary'],
-                    sentiment_data=st.session_state.results['sentiment_results'],  
+                    dictionary=st.session_state.results['dictionary'],  
                     top_n=10
                     )
                                                     
@@ -928,12 +894,11 @@ if uploaded_file is not None:
 
             if st.button("Analyse Selected Topic"):
                 # Enhance topic interpretation further by including extracted sentiments
-                explain_topic_with_sentiment(
+                explain_topic(
                     model=st.session_state.results['lda_model'], 
                     topic_id=selected_topic, 
                     corpus=st.session_state.results['corpus'], 
-                    dictionary=st.session_state.results['dictionary'],
-                    sentiment_data=st.session_state.results['sentiment_results'],  
+                    dictionary=st.session_state.results['dictionary'],  
                     top_n=10
                     )    
                         
