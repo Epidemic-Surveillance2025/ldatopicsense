@@ -500,103 +500,6 @@ def analyze_topics(df, interview_id=None):
         'sentiment_figures': sentiment_figures
     }
 
-def explain_topic(model, topic_id, corpus, dictionary, top_n=10):
-    """Enhanced function to explain a specific topic in detail"""
-    
-    st.subheader(f"Detailed Analysis of Topic {topic_id}")
-    
-    # Get the top terms for this topic
-    topic_terms = model.show_topic(topic_id, topn=top_n)
-    
-    # Create a two column-layout for ease of readability
-    col1, col2 = st.columns([2, 1])
-    
-    with col1:
-        st.write("##### Top Terms and Weights")
-        # Create a pretty dataframe display
-        term_df = pd.DataFrame(topic_terms, columns=["Term", "Weight"])
-        term_df['Weight'] = term_df['Weight'].round(4)
-        st.dataframe(term_df, use_container_width=True)
-        
-        # Create a bar chart of term weights
-        fig = px.bar(
-            term_df, 
-            x='Weight', 
-            y='Term', 
-            orientation='h',
-            title=f"Term Weights for Topic {topic_id}"
-        )
-        fig.update_layout(yaxis={'categoryorder':'total ascending'})
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        # Topic statistics
-        st.write("##### Topic Statistics")
-        
-        # Calculate topic prevalence across documents
-        doc_topic_probs = [doc for doc in model[corpus]]
-        topic_prevalence = sum([prob for doc in doc_topic_probs 
-                               for topic, prob in doc if topic == topic_id])
-        
-        st.metric("Topic Prevalence", f"{topic_prevalence:.2f}")
-        
-        # Count documents where this topic is dominant
-        dominant_docs = 0
-        for doc in doc_topic_probs:
-            if doc and max(doc, key=lambda x: x[1])[0] == topic_id:
-                dominant_docs += 1
-        
-        st.metric("Documents where dominant", dominant_docs)
-        
-        # Show topic coherence if available
-        try:
-            coherence_model = CoherenceModel(
-                model=st.session_state.results['lda_model'], 
-                texts=st.session_state.results['tokenized_answers'], 
-                dictionary=st.session_state.results['dictionary'], 
-                coherence='c_v'
-            )
-            coherence_score = coherence_model.get_coherence_per_topic()[topic_id]
-            st.metric("Coherence Score", f"{coherence_score:.4f}")
-        except Exception as e:
-            st.info(f"Coherence score calculation not available: {str(e)}")
-    
-    # Show sample documents
-    st.write("##### Sample Documents")
-    
-    # Find documents where this topic is prominent
-    prominent_docs = []
-    for doc_id, doc in enumerate(doc_topic_probs):
-        for topic, prob in doc:
-            if topic == topic_id and prob > 0.3:  # Threshold for "prominent"
-                prominent_docs.append((doc_id, prob))
-    
-    # Sort by probability and show top 3
-    prominent_docs.sort(key=lambda x: x[1], reverse=True)
-
-    if prominent_docs:
-        st.write(f"Documents where Topic {topic_id} is prominent:")
-        for i, (doc_id, prob) in enumerate(prominent_docs[:3]):
-            with st.expander(f"Document {doc_id} (Topic weight: {prob:.3f})"):
-                # Get the original text from the DataFrame using doc_id as index
-                try:
-                    original_text = df.iloc[doc_id]['Answers']
-                    st.write(original_text)
-                except:
-                    st.write("*[Original document text not available]*")
-                st.write(f"**Topic {topic_id} weight in this document: {prob:.3f}**")
-    else:
-        st.info("No documents found where this topic is highly prominent.")
-            
-    # Interpretation tips
-    st.info("""
-    ** How to interpret:**
-    - **Higher weights** indicate terms more central to this topic
-    - **Coherence scores** above 0.4 suggest semantically coherent topics
-    - **Topic prevalence** shows how common this theme is in your corpus
-    - Look for **semantic connections** between the top terms
-    """)
-
 # Define own sentiment analysis documentation content
 sentiment_docs = """
 # Understanding Sentiment Analysis
@@ -758,28 +661,7 @@ if uploaded_file is not None:
                 # Display the visualisation
                 st.components.v1.html(html_viz, height=800)
 
-        # Exploration of individual topics
-        st.divider()
-        st.subheader("Explore Individual Topics")
-    
-        # Allow users to select a topic to explore in detail
-        # Then use session state in the selectbox/button code
-        if 'results' in st.session_state and st.session_state.results is not None:
-            num_topics = st.session_state.results['lda_model'].num_topics
-            selected_topic = st.selectbox("Select a topic for detailed analysis:",
-                                          range(num_topics),
-                                          format_func=lambda x: f"Topic {x}")
-
-            if st.button("Analyse Selected Topic"):
-                # Enhance topic interpretation further by including extracted sentiments
-                explain_topic(
-                    model=st.session_state.results['lda_model'], 
-                    topic_id=selected_topic, 
-                    corpus=st.session_state.results['corpus'], 
-                    dictionary=st.session_state.results['dictionary'],  
-                    top_n=10
-                    )
-                                                    
+                # Display tips for interpreting sentiments                                                    
                 with st.expander(" How to interpret sentiment analysis"):
                     st.markdown("""
                     ### Quick Guide
@@ -877,31 +759,10 @@ if uploaded_file is not None:
     
                             [Click here to learn more](https://pyldavis.readthedocs.io/en/latest/) about topic modelling visualisations.
                             """)
-                            
-                    st.components.v1.html(html_viz, height = 800)
+                    # Show visual display        
+                    st.components.v1.html(html_viz, height = 800)    
 
-        # Exploration of individual topics
-        st.divider()
-        st.subheader("Explore Individual Topics")
-    
-        # Allow users to select a topic to explore in detail
-        # Then use session state in the selectbox/button code
-        if 'results' in st.session_state and st.session_state.results is not None:
-            num_topics = st.session_state.results['lda_model'].num_topics
-            selected_topic = st.selectbox("Select a topic for detailed analysis:",
-                                          range(num_topics),
-                                          format_func=lambda x: f"Topic {x}")
-
-            if st.button("Analyse Selected Topic"):
-                # Enhance topic interpretation further by including extracted sentiments
-                explain_topic(
-                    model=st.session_state.results['lda_model'], 
-                    topic_id=selected_topic, 
-                    corpus=st.session_state.results['corpus'], 
-                    dictionary=st.session_state.results['dictionary'],  
-                    top_n=10
-                    )    
-                        
+                # Display tips for interpreting sentiments
                 with st.expander("How to interpret sentiment analysis"):
                     st.markdown("""
                     ### Quick Guide
