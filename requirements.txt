@@ -14,5 +14,5 @@ bitsandbytes
 pyvis
 python-dotenv
 textblob
-scipy==1.12
+scipy
 pyldavis
