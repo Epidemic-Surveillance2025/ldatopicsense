@@ -7,7 +7,6 @@ openai
 seaborn
 nltk
 scipy
-gensim
 transformers
 accelerate
 bitsandbytes
