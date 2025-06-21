@@ -7,11 +7,11 @@ openai
 seaborn
 nltk
 gensim
-scipy==1.12
 transformers
 accelerate
 bitsandbytes
 pyvis
 python-dotenv
 textblob
+scipy==1.12
 pyldavis
