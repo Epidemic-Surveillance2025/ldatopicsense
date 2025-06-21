@@ -6,7 +6,8 @@ scikit-learn
 openai
 seaborn
 nltk
-scipy==1.12
+gensim
+scipy
 transformers
 accelerate
 bitsandbytes
