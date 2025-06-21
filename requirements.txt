@@ -6,6 +6,7 @@ scikit-learn
 openai
 seaborn
 nltk
+scipy
 gensim
 transformers
 accelerate
@@ -13,5 +14,4 @@ bitsandbytes
 pyvis
 python-dotenv
 textblob
-scipy
 pyldavis
